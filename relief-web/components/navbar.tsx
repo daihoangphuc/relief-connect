@@ -11,7 +11,7 @@ export function Navbar() {
           </div>
           <div className="flex flex-col">
             <span className="text-lg font-bold leading-none tracking-tight">Relief Connect</span>
-            <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">
+            <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium hidden sm:block">
               Emergency Response
             </span>
           </div>

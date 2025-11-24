@@ -54,7 +54,7 @@ export default function MissionsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="container max-w-5xl mx-auto py-8 px-4 space-y-6">
       <div className="flex items-center gap-4">
         <Link href="/">
           <Button variant="ghost" size="icon">
@@ -105,22 +105,24 @@ export default function MissionsPage() {
               <CardFooter className="gap-2 pt-0">
                 {!mission.completedAt && mission.requestDetails && (
                   <>
-                    <Button
-                      variant="outline"
-                      className="flex-1 bg-transparent"
-                      onClick={() => openMaps(mission.requestDetails!.latitude, mission.requestDetails!.longitude)}
-                    >
-                      <Navigation className="mr-2 h-4 w-4" />
-                      Chỉ đường
-                    </Button>
-                    <Button
-                      className="flex-1 bg-green-600 hover:bg-green-700"
-                      onClick={() => handleComplete(mission)}
-                      disabled={completingId === mission.id}
-                    >
-                      <CheckCircle2 className="mr-2 h-4 w-4" />
-                      Hoàn thành
-                    </Button>
+                    <div className="flex flex-col sm:flex-row gap-2 w-full">
+                      <Button
+                        variant="outline"
+                        className="flex-1 bg-transparent h-11 sm:h-10"
+                        onClick={() => openMaps(mission.requestDetails!.latitude, mission.requestDetails!.longitude)}
+                      >
+                        <Navigation className="mr-2 h-4 w-4" />
+                        Chỉ đường
+                      </Button>
+                      <Button
+                        className="flex-1 bg-green-600 hover:bg-green-700 h-11 sm:h-10"
+                        onClick={() => handleComplete(mission)}
+                        disabled={completingId === mission.id}
+                      >
+                        <CheckCircle2 className="mr-2 h-4 w-4" />
+                        Hoàn thành
+                      </Button>
+                    </div>
                   </>
                 )}
               </CardFooter>

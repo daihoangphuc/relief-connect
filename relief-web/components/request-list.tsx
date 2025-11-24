@@ -202,7 +202,7 @@ export function RequestList() {
                             Xem & Nhận Hỗ Trợ <ArrowRight className="ml-2 h-4 w-4" />
                           </Button>
                         </DialogTrigger>
-                        <DialogContent className="max-w-2xl rounded-3xl max-h-[90vh] overflow-y-auto">
+                        <DialogContent className="w-[95vw] max-w-2xl rounded-2xl max-h-[90vh] overflow-y-auto p-4 sm:p-6">
                           <DialogHeader>
                             <DialogTitle>Xác nhận nhận nhiệm vụ</DialogTitle>
                             <DialogDescription>

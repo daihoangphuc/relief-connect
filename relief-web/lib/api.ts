@@ -1,7 +1,7 @@
 import { type CreateRequestDto, type ReliefRequest, RequestStatus } from "@/types/api"
 import { v4 as uuidv4 } from "uuid"
 
-const API_BASE_URL = "https://heron-dear-bison.ngrok-free.app/api"
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5162/api"
 
 // Mock data for demonstration when API is not available
 export const MOCK_REQUESTS: ReliefRequest[] = [

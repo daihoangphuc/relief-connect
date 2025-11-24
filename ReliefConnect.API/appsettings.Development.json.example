@@ -5,7 +5,6 @@
       "Microsoft.AspNetCore": "Warning"
     }
   },
-  "AllowedHosts": "*",
-  "SupabaseUrl": "",
-  "SupabaseKey": ""
+  "SupabaseUrl": "YOUR_SUPABASE_URL_HERE",
+  "SupabaseKey": "YOUR_SUPABASE_ANON_KEY_HERE"
 }

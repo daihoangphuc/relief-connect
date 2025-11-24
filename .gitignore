@@ -1,0 +1,25 @@
+# Root .gitignore
+# This file covers the entire RELIEF CONNECT project
+
+# Documentation (keep these)
+!README.md
+!schema.sql
+!doc-for-frontend.md
+!tect-docs.md
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Environment
+.env
+.env.local

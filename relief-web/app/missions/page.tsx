@@ -42,8 +42,8 @@ export default function MissionsPage() {
       localStorage.setItem("my_missions", JSON.stringify(updatedMissions))
 
       toast.success("Đã hoàn thành nhiệm vụ! Cảm ơn bạn.")
-    } catch (error) {
-      toast.error("Có lỗi xảy ra khi cập nhật trạng thái")
+    } catch (error: any) {
+      toast.error(error.message || "Có lỗi xảy ra khi cập nhật trạng thái", { duration: 10000 })
     } finally {
       setCompletingId(null)
     }

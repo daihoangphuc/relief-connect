@@ -1,39 +1,42 @@
+export enum RequestStatus {
+  Open = 0,
+  InProgress = 1,
+  Completed = 2,
+  Cancelled = 3,
+}
+
+// Matches 'relief_requests' table
 export interface ReliefRequest {
   id: string
-  requesterId: string
+  requesterId: string // mapped from requester_id
   title: string
   description: string
   latitude: number
   longitude: number
   address: string
   status: RequestStatus
-  createdAt: string
-  contactPhone?: string | null
+  createdAt: string // mapped from created_at
+  contactPhone?: string | null // mapped from contact_phone
   items?: RequestItem[]
 }
 
+// Matches 'request_items' table
 export interface RequestItem {
   id: string
-  requestId: string
-  itemName: string
-  quantityNeeded: number
+  requestId: string // mapped from request_id
+  itemName: string // mapped from item_name
+  quantityNeeded: number // mapped from quantity_needed
   unit: string
 }
 
+// Matches 'relief_missions' table
 export interface ReliefMission {
   id: string
-  requestId: string
-  donorId: string
-  startedAt: string
-  completedAt?: string
-  proofImage?: string
-}
-
-export enum RequestStatus {
-  Open = 0,
-  InProgress = 1,
-  Completed = 2,
-  Cancelled = 3,
+  requestId: string // mapped from request_id
+  donorId: string // mapped from donor_id
+  startedAt: string // mapped from started_at
+  completedAt?: string // mapped from completed_at
+  proofImage?: string // mapped from proof_image
 }
 
 export interface CreateRequestDto {

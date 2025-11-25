@@ -98,34 +98,34 @@ export default function RequestPage() {
 
       toast.success("Yêu cầu cứu trợ đã được gửi thành công!")
       router.push("/request/success")
-    } catch (error) {
+    } catch (error: any) {
       console.error(error)
-      toast.error("Có lỗi xảy ra, vui lòng thử lại.")
+      toast.error(error.message || "Có lỗi xảy ra, vui lòng thử lại.", { duration: 10000 })
     } finally {
       setIsLoading(false)
     }
   }
 
   return (
-    <div className="container max-w-lg mx-auto py-8 px-4">
+    <div className="container max-w-lg mx-auto py-6 px-4 sm:py-8">
       <Link
         href="/"
-        className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-foreground mb-6 transition-colors"
+        className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-foreground mb-6 transition-colors active:text-foreground"
       >
         <ChevronLeft className="h-4 w-4 mr-1" /> Quay lại trang chủ
       </Link>
 
       <Card className="border-none shadow-2xl rounded-3xl overflow-hidden">
-        <div className="h-2 bg-gradient-to-r from-red-500 to-rose-600" />
+        <div className="h-2 bg-gradient-to-r from-destructive to-orange-500" />
         <CardHeader className="space-y-1 bg-card pb-6">
           <CardTitle className="text-2xl font-bold text-center">Gửi Yêu Cầu Hỗ Trợ</CardTitle>
           <CardDescription className="text-center text-base">
             Hãy cung cấp thông tin chi tiết để chúng tôi kết nối bạn nhanh nhất.
           </CardDescription>
         </CardHeader>
-        <CardContent className="p-6 pt-0">
+        <CardContent className="p-5 sm:p-6 pt-0">
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 sm:space-y-6">
               <div className="space-y-4">
                 <FormField
                   control={form.control}
@@ -136,7 +136,7 @@ export default function RequestPage() {
                       <FormControl>
                         <Input
                           placeholder="VD: Cần lương thực, nước uống, thuốc men..."
-                          className="h-12 rounded-xl text-lg bg-muted/30 border-muted-foreground/20 focus-visible:ring-red-500"
+                          className="h-12 rounded-xl text-base bg-muted/30 border-muted-foreground/20 focus-visible:ring-destructive"
                           {...field}
                         />
                       </FormControl>
@@ -155,7 +155,7 @@ export default function RequestPage() {
                         <FormControl>
                           <div className="relative">
                             <Phone className="absolute left-3 top-3.5 h-4 w-4 text-muted-foreground" />
-                            <Input placeholder="090..." className="pl-9 h-11 rounded-xl bg-muted/30" {...field} />
+                            <Input placeholder="090..." className="pl-9 h-12 rounded-xl bg-muted/30 text-base" {...field} />
                           </div>
                         </FormControl>
                         <FormMessage />
@@ -173,7 +173,7 @@ export default function RequestPage() {
                       <FormControl>
                         <Textarea
                           placeholder="Số lượng người, tình trạng hiện tại, vật dụng cụ thể..."
-                          className="min-h-[100px] rounded-xl bg-muted/30 resize-none"
+                          className="min-h-[120px] rounded-xl bg-muted/30 resize-none text-base"
                           {...field}
                         />
                       </FormControl>
@@ -194,7 +194,7 @@ export default function RequestPage() {
                             <MapPin className="absolute left-3 top-3.5 h-4 w-4 text-muted-foreground" />
                             <Input
                               placeholder="Số nhà, tên đường, phường/xã..."
-                              className="pl-9 h-11 rounded-xl bg-muted/30"
+                              className="pl-9 h-12 rounded-xl bg-muted/30 text-base"
                               {...field}
                             />
                           </div>
@@ -209,11 +209,10 @@ export default function RequestPage() {
                     variant="outline"
                     onClick={getLocation}
                     disabled={locationStatus === "loading" || locationStatus === "success"}
-                    className={`w-full h-11 rounded-xl border-dashed border-2 ${
-                      locationStatus === "success"
-                        ? "border-green-500 text-green-600 bg-green-50 hover:bg-green-50"
-                        : "border-muted-foreground/30 hover:bg-muted/50"
-                    }`}
+                    className={`w-full h-12 rounded-xl border-dashed border-2 text-base ${locationStatus === "success"
+                      ? "border-green-500 text-green-600 bg-green-50 hover:bg-green-50"
+                      : "border-muted-foreground/30 hover:bg-muted/50"
+                      }`}
                   >
                     {locationStatus === "loading" ? (
                       <>
@@ -242,22 +241,24 @@ export default function RequestPage() {
                 </Alert>
               )}
 
-              <Button
-                type="submit"
-                className="w-full h-14 text-lg font-bold rounded-xl bg-red-600 hover:bg-red-700 shadow-lg shadow-red-500/20 transition-all hover:scale-[1.01]"
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Đang gửi...
-                  </>
-                ) : (
-                  <>
-                    Gửi Yêu Cầu Ngay <Send className="ml-2 h-5 w-5" />
-                  </>
-                )}
-              </Button>
-              <p className="text-xs text-center text-muted-foreground mt-4">
+              <div className="sticky bottom-4 sm:static pt-2 sm:pt-0 z-10">
+                <Button
+                  type="submit"
+                  className="w-full h-14 text-lg font-bold rounded-xl bg-gradient-to-r from-destructive to-orange-600 hover:from-destructive/90 hover:to-orange-700 shadow-lg shadow-destructive/20 transition-all hover:scale-[1.01] active:scale-[0.98]"
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Đang gửi...
+                    </>
+                  ) : (
+                    <>
+                      Gửi Yêu Cầu Ngay <Send className="ml-2 h-5 w-5" />
+                    </>
+                  )}
+                </Button>
+              </div>
+              <p className="text-xs text-center text-muted-foreground mt-4 pb-4 sm:pb-0">
                 Bằng việc gửi yêu cầu, bạn đồng ý chia sẻ số điện thoại và vị trí với đội cứu trợ.
               </p>
             </form>

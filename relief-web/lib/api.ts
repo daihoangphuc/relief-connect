@@ -1,35 +1,7 @@
 import { type CreateRequestDto, type ReliefRequest, RequestStatus } from "@/types/api"
-import { v4 as uuidv4 } from "uuid"
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5162/api"
-
-// Mock data for demonstration when API is not available
-export const MOCK_REQUESTS: ReliefRequest[] = [
-  {
-    id: "1",
-    requesterId: "req-1",
-    title: "Cần nước sạch và lương thực",
-    description: "Khu vực bị ngập sâu, 5 hộ gia đình đang cô lập.",
-    latitude: 10.762622,
-    longitude: 106.660172,
-    address: "Xã Bình Phú, Tỉnh Vĩnh Long",
-    status: 0,
-    createdAt: new Date().toISOString(),
-    contactPhone: "123456789",
-  },
-  {
-    id: "2",
-    requesterId: "req-2",
-    title: "Hỗ trợ y tế khẩn cấp",
-    description: "Cần thuốc hạ sốt và bông băng cho người già.",
-    latitude: 10.772622,
-    longitude: 106.670172,
-    address: "Phường 5, Quận 3, TP.HCM",
-    status: 0,
-    createdAt: new Date(Date.now() - 3600000).toISOString(),
-    contactPhone: "987654321",
-  },
-]
+// Force relative path to avoid Mixed Content issues on Ngrok (HTTPS -> HTTP)
+const API_BASE_URL = "/api"
 
 // Helper to map API snake_case to App camelCase
 const mapRequestFromApi = (data: any): ReliefRequest => ({
@@ -45,123 +17,84 @@ const mapRequestFromApi = (data: any): ReliefRequest => ({
   contactPhone: data.contact_phone,
 })
 
+// Helper for consistent fetch handling
+const fetchClient = async (url: string, options?: RequestInit) => {
+  try {
+    const res = await fetch(url, {
+      ...options,
+      headers: {
+        "ngrok-skip-browser-warning": "true",
+        Accept: "application/json",
+        ...options?.headers,
+      },
+    })
+
+    if (!res.ok) {
+      const errorText = await res.text()
+      console.error(`[v0] API Error ${res.status}:`, errorText)
+      throw new Error(`Failed to fetch: ${res.status} ${res.statusText}`)
+    }
+
+    // For 204 No Content, return null
+    if (res.status === 204) return null
+
+    return res.json()
+  } catch (error: any) {
+    console.error(`[API Error] Failed to fetch ${url}:`, error)
+
+    if (error.name === "TypeError" && error.message === "Failed to fetch") {
+      throw new Error(`Không thể kết nối đến server (${url}). Vui lòng kiểm tra kết nối mạng hoặc server.`)
+    }
+    throw error
+  }
+}
+
 export const api = {
   getRequests: async (status?: RequestStatus): Promise<ReliefRequest[]> => {
-    try {
-      const url = new URL(`${API_BASE_URL}/requests`)
-      if (status !== undefined && (status as any) !== -1) {
-        url.searchParams.append("status", status.toString())
-      }
-
-      console.log("[v0] Fetching requests from:", url.toString())
-
-      const res = await fetch(url.toString(), {
-        headers: {
-          "ngrok-skip-browser-warning": "true",
-          Accept: "application/json",
-        },
-      })
-
-      if (!res.ok) {
-        const errorText = await res.text()
-        console.error(`[v0] API Error ${res.status}:`, errorText)
-        throw new Error(`Failed to fetch requests: ${res.status} ${res.statusText}`)
-      }
-
-      const data = await res.json()
-      return Array.isArray(data) ? data.map(mapRequestFromApi) : []
-    } catch (error) {
-      console.warn("[v0] API unavailable, falling back to mock data", error)
-      // Return mock data so the app doesn't crash
-      if (status === undefined || (status as any) === -1) return MOCK_REQUESTS
-      return MOCK_REQUESTS.filter((r) => r.status === status)
+    let urlStr = `${API_BASE_URL}/requests`
+    if (status !== undefined && (status as any) !== -1) {
+      urlStr += `?status=${status}`
     }
+    console.log("[v0] Fetching requests from:", urlStr)
+
+    const data = await fetchClient(urlStr)
+    return Array.isArray(data) ? data.map(mapRequestFromApi) : []
   },
 
   createRequest: async (data: CreateRequestDto): Promise<ReliefRequest> => {
-    try {
-      console.log("[v0] Creating request at:", `${API_BASE_URL}/requests`)
+    console.log("[v0] Creating request at:", `${API_BASE_URL}/requests`)
 
-      const payload = {
-        requester_id: data.requesterId,
-        title: data.title,
-        description: data.description,
-        latitude: data.latitude,
-        longitude: data.longitude,
-        address: data.address,
-        contact_phone: data.contactPhone || null,
-      }
-
-      const res = await fetch(`${API_BASE_URL}/requests`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "ngrok-skip-browser-warning": "true",
-        },
-        body: JSON.stringify(payload),
-      })
-      if (!res.ok) throw new Error("Failed to create request")
-
-      const responseData = await res.json()
-      return mapRequestFromApi(responseData)
-    } catch (error) {
-      console.warn("API unavailable, returning mock response", error)
-      const mockId = uuidv4()
-      return {
-        ...data,
-        id: mockId,
-        status: RequestStatus.Open,
-        createdAt: new Date().toISOString(),
-        contactPhone: data.contactPhone || null,
-        items: data.items?.map(item => ({
-          ...item,
-          id: uuidv4(),
-          requestId: mockId
-        }))
-      }
+    const payload = {
+      requesterId: data.requesterId,
+      title: data.title,
+      description: data.description,
+      latitude: data.latitude,
+      longitude: data.longitude,
+      address: data.address,
+      contactPhone: data.contactPhone || null,
     }
+
+    const responseData = await fetchClient(`${API_BASE_URL}/requests`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    })
+
+    return mapRequestFromApi(responseData)
   },
 
   acceptMission: async (requestId: string, donorId: string) => {
-    try {
-      const res = await fetch(`${API_BASE_URL}/missions`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "ngrok-skip-browser-warning": "true",
-        },
-        body: JSON.stringify({ requestId, donorId }),
-      })
-      if (!res.ok) throw new Error("Failed to accept mission")
-      return res.json()
-    } catch (error) {
-      console.warn("API unavailable, returning mock response", error)
-      return {
-        id: uuidv4(),
-        requestId,
-        donorId,
-        startedAt: new Date().toISOString(),
-      }
-    }
+    return fetchClient(`${API_BASE_URL}/missions`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ requestId, donorId }),
+    })
   },
 
   completeMission: async (missionId: string) => {
-    try {
-      const res = await fetch(`${API_BASE_URL}/missions?id=${missionId}`, {
-        method: "PATCH",
-        headers: {
-          "ngrok-skip-browser-warning": "true",
-        },
-      })
-      if (!res.ok) throw new Error("Failed to complete mission")
-      // PATCH returns 204 No Content, so we don't parse JSON
-      return { success: true }
-    } catch (error) {
-      console.warn("API unavailable, returning mock response", error)
-      return {
-        id: missionId,
-        completedAt: new Date().toISOString(),
-      }
-    }
+    await fetchClient(`${API_BASE_URL}/missions?id=${missionId}`, {
+      method: "PATCH",
+    })
+    return { success: true }
   },
 }

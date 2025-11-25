@@ -4,31 +4,41 @@ import { type CreateRequestDto, RequestStatus } from "@/types/api"
 
 // GET /api/requests
 export async function GET(request: Request) {
-    const { searchParams } = new URL(request.url)
-    const status = searchParams.get("status")
+    try {
+        const { searchParams } = new URL(request.url)
+        const status = searchParams.get("status")
 
-    let query = supabase
-        .from("relief_requests")
-        .select("*")
-        .order("created_at", { ascending: false })
+        let query = supabase
+            .from("relief_requests")
+            .select("*")
+            .order("created_at", { ascending: false })
 
-    if (status && status !== "-1") {
-        query = query.eq("status", status)
-    }
+        if (status && status !== "-1") {
+            query = query.eq("status", status)
+        }
 
-    const { data, error } = await query
+        const { data, error } = await query
 
-    if (error) {
+        if (error) {
+            console.error("Supabase GET error:", error)
+            return NextResponse.json({ error: error.message }, { status: 500 })
+        }
+
+        return NextResponse.json(data)
+    } catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 500 })
     }
-
-    return NextResponse.json(data)
 }
 
 // POST /api/requests
 export async function POST(request: Request) {
     try {
         const body: CreateRequestDto = await request.json()
+
+        // Basic validation
+        if (!body.title || !body.description || !body.latitude || !body.longitude) {
+            return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
+        }
 
         const { data, error } = await supabase
             .from("relief_requests")
@@ -46,33 +56,12 @@ export async function POST(request: Request) {
             .select()
             .single()
 
-        if (error) throw error
-
-        return NextResponse.json(data, { status: 201 })
-    } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 })
-    }
-}
-
-// PATCH /api/requests
-export async function PATCH(request: Request) {
-    try {
-        const { searchParams } = new URL(request.url)
-        const id = searchParams.get("id")
-        const status = searchParams.get("status")
-
-        if (!id || !status) {
-            return NextResponse.json({ error: "Missing id or status" }, { status: 400 })
+        if (error) {
+            console.error("Supabase POST error:", error)
+            return NextResponse.json({ error: error.message }, { status: 500 })
         }
 
-        const { error } = await supabase
-            .from("relief_requests")
-            .update({ status: parseInt(status) })
-            .eq("id", id)
-
-        if (error) throw error
-
-        return new NextResponse(null, { status: 204 })
+        return NextResponse.json(data, { status: 201 })
     } catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 500 })
     }

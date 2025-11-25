@@ -23,7 +23,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="vi" suppressHydrationWarning>
-      <body className={`${beVietnamPro.variable} font-sans antialiased min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950`} suppressHydrationWarning>
+      <body className={`${beVietnamPro.variable} font-sans antialiased min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 overflow-x-hidden`} suppressHydrationWarning>
         <Navbar />
         <main className="flex-1">{children}</main>
         <Toaster />

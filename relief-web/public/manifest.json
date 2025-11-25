@@ -1,0 +1,54 @@
+{
+    "name": "Relief Connect",
+    "short_name": "Relief",
+    "description": "Hệ thống cứu trợ khẩn cấp",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#ef4444",
+    "orientation": "portrait",
+    "icons": [
+        {
+            "src": "/icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ],
+    "categories": [
+        "utilities",
+        "social"
+    ],
+    "shortcuts": [
+        {
+            "name": "Gửi yêu cầu SOS",
+            "short_name": "SOS",
+            "description": "Gửi yêu cầu cứu trợ khẩn cấp",
+            "url": "/request",
+            "icons": [
+                {
+                    "src": "/icon-192.png",
+                    "sizes": "192x192"
+                }
+            ]
+        },
+        {
+            "name": "Tình nguyện viên",
+            "short_name": "Giúp đỡ",
+            "description": "Xem yêu cầu cần hỗ trợ",
+            "url": "/volunteer",
+            "icons": [
+                {
+                    "src": "/icon-192.png",
+                    "sizes": "192x192"
+                }
+            ]
+        }
+    ]
+}

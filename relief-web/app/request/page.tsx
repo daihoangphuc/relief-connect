@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { v4 as uuidv4 } from "uuid"
-import { MapPin, Loader2, AlertCircle, ChevronLeft, Send, Phone } from "lucide-react"
+import { MapPin, Loader2, AlertCircle, ChevronLeft, Send, Phone, AlertTriangle } from "lucide-react"
 import Link from "next/link"
 
 import { Button } from "@/components/ui/button"
@@ -17,11 +17,15 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { toast } from "sonner"
 import { api } from "@/lib/api"
+import { UrgencyLevel } from "@/types/api"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+
 
 const formSchema = z.object({
   title: z.string().min(5, "Tiêu đề phải có ít nhất 5 ký tự"),
   description: z.string().min(10, "Mô tả chi tiết tình huống cần hỗ trợ"),
   address: z.string().min(5, "Vui lòng nhập địa chỉ cụ thể"),
+  urgency: z.string().optional(),
   contact: z.string().min(10, "Vui lòng để lại số điện thoại liên hệ").optional(), // Optional but good practice
   latitude: z.number().optional(),
   longitude: z.number().optional(),
@@ -50,6 +54,7 @@ export default function RequestPage() {
       title: "",
       description: "",
       address: "",
+      urgency: "1",
       contact: "",
     },
   })
@@ -62,19 +67,57 @@ export default function RequestPage() {
       return
     }
 
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        form.setValue("latitude", position.coords.latitude)
-        form.setValue("longitude", position.coords.longitude)
-        setLocationStatus("success")
-        toast.success("Đã lấy được tọa độ vị trí")
-      },
-      (error) => {
-        console.error(error)
-        setLocationStatus("error")
-        toast.error("Không thể lấy vị trí. Vui lòng kiểm tra quyền truy cập.")
-      },
-    )
+    try {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const lat = position.coords.latitude
+          const lng = position.coords.longitude
+
+          form.setValue("latitude", lat)
+          form.setValue("longitude", lng)
+
+          // Reverse geocoding to get address from coordinates
+          try {
+            const response = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=vi`,
+              {
+                headers: {
+                  'User-Agent': 'ReliefConnect/1.0'
+                }
+              }
+            )
+
+            if (response.ok) {
+              const data = await response.json()
+              const address = data.display_name || `${lat.toFixed(6)}, ${lng.toFixed(6)}`
+              form.setValue("address", address)
+              toast.success("Đã lấy được vị trí: " + (data.address?.city || data.address?.county || ""))
+            } else {
+              // Fallback to coordinates if reverse geocoding fails
+              form.setValue("address", `${lat.toFixed(6)}, ${lng.toFixed(6)}`)
+              toast.success("Đã lấy được tọa độ vị trí")
+            }
+          } catch (geocodeError) {
+            console.error("Reverse geocoding error:", geocodeError)
+            // Fallback to coordinates
+            form.setValue("address", `${lat.toFixed(6)}, ${lng.toFixed(6)}`)
+            toast.success("Đã lấy được tọa độ vị trí")
+          }
+
+          setLocationStatus("success")
+        },
+        (error) => {
+          console.error(error)
+          setLocationStatus("error")
+          toast.error("Không thể lấy vị trí. Vui lòng kiểm tra quyền truy cập.")
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      )
+    } catch (error) {
+      console.error("Geolocation error:", error)
+      setLocationStatus("error")
+      toast.error("Lỗi khi gọi định vị. Có thể do tiện ích mở rộng chặn.")
+    }
   }
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
@@ -92,6 +135,7 @@ export default function RequestPage() {
         title: values.title,
         description,
         address: values.address,
+        urgencyLevel: parseInt(values.urgency || "1") as UrgencyLevel,
         latitude,
         longitude,
       })
@@ -107,7 +151,7 @@ export default function RequestPage() {
   }
 
   return (
-    <div className="container max-w-lg mx-auto py-6 px-4 sm:py-8">
+    <div className="container max-w-5xl mx-auto py-6 px-4 sm:py-8" suppressHydrationWarning>
       <Link
         href="/"
         className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-foreground mb-6 transition-colors active:text-foreground"
@@ -126,38 +170,67 @@ export default function RequestPage() {
         <CardContent className="p-5 sm:p-6 pt-0">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 sm:space-y-6">
-              <div className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="title"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-base font-semibold">Bạn cần hỗ trợ gì?</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="VD: Cần lương thực, nước uống, thuốc men..."
-                          className="h-12 rounded-xl text-base bg-muted/30 border-muted-foreground/20 focus-visible:ring-destructive"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <div className="grid grid-cols-1 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="md:col-span-2">
                   <FormField
                     control={form.control}
-                    name="contact"
+                    name="title"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="font-semibold">Số điện thoại</FormLabel>
+                        <FormLabel className="text-base font-semibold">Bạn cần hỗ trợ gì?</FormLabel>
                         <FormControl>
-                          <div className="relative">
-                            <Phone className="absolute left-3 top-3.5 h-4 w-4 text-muted-foreground" />
-                            <Input placeholder="090..." className="pl-9 h-12 rounded-xl bg-muted/30 text-base" {...field} />
-                          </div>
+                          <Input
+                            placeholder="VD: Cần lương thực, nước uống, thuốc men..."
+                            className="h-12 rounded-xl text-base bg-muted/30 border-muted-foreground/20 focus-visible:ring-destructive"
+                            {...field}
+                          />
                         </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div className="md:col-span-2">
+                  <FormField
+                    control={form.control}
+                    name="urgency"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-base font-semibold">Mức độ khẩn cấp</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger className="h-12 rounded-xl text-base bg-muted/30 border-muted-foreground/20">
+                              <SelectValue placeholder="Chọn mức độ khẩn cấp" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="0" className="text-base">
+                              <div className="flex items-center gap-2">
+                                <div className="h-3 w-3 rounded-full bg-blue-500" />
+                                <span>Thấp - Không gấp</span>
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="1" className="text-base">
+                              <div className="flex items-center gap-2">
+                                <div className="h-3 w-3 rounded-full bg-yellow-500" />
+                                <span>Trung bình - Cần hỗ trợ sớm</span>
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="2" className="text-base">
+                              <div className="flex items-center gap-2">
+                                <div className="h-3 w-3 rounded-full bg-orange-500" />
+                                <span>Cao - Cần gấp</span>
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="3" className="text-base">
+                              <div className="flex items-center gap-2">
+                                <AlertTriangle className="h-4 w-4 text-red-600 fill-red-100" />
+                                <span className="font-semibold text-red-600">Khẩn cấp - Nguy hiểm</span>
+                              </div>
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -166,31 +239,30 @@ export default function RequestPage() {
 
                 <FormField
                   control={form.control}
-                  name="description"
+                  name="contact"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="font-semibold">Mô tả chi tiết</FormLabel>
+                      <FormLabel className="font-semibold">Số điện thoại</FormLabel>
                       <FormControl>
-                        <Textarea
-                          placeholder="Số lượng người, tình trạng hiện tại, vật dụng cụ thể..."
-                          className="min-h-[120px] rounded-xl bg-muted/30 resize-none text-base"
-                          {...field}
-                        />
+                        <div className="relative">
+                          <Phone className="absolute left-3 top-3.5 h-4 w-4 text-muted-foreground" />
+                          <Input placeholder="090..." className="pl-9 h-12 rounded-xl bg-muted/30 text-base" {...field} />
+                        </div>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
 
-                <div className="space-y-3 pt-2">
-                  <FormField
-                    control={form.control}
-                    name="address"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="font-semibold">Vị trí hiện tại</FormLabel>
-                        <FormControl>
-                          <div className="relative">
+                <FormField
+                  control={form.control}
+                  name="address"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="font-semibold">Vị trí hiện tại</FormLabel>
+                      <FormControl>
+                        <div className="flex flex-col sm:flex-row gap-2">
+                          <div className="relative flex-1">
                             <MapPin className="absolute left-3 top-3.5 h-4 w-4 text-muted-foreground" />
                             <Input
                               placeholder="Số nhà, tên đường, phường/xã..."
@@ -198,37 +270,58 @@ export default function RequestPage() {
                               {...field}
                             />
                           </div>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={getLocation}
+                            disabled={locationStatus === "loading" || locationStatus === "success"}
+                            className={`h-12 px-4 rounded-xl border-2 whitespace-nowrap w-full sm:w-auto ${locationStatus === "success"
+                              ? "border-green-500 text-green-600 bg-green-50 hover:bg-green-50"
+                              : "border-muted-foreground/30 hover:bg-muted/50"
+                              }`}
+                            title="Lấy vị trí hiện tại"
+                          >
+                            {locationStatus === "loading" ? (
+                              <Loader2 className="h-5 w-5 animate-spin" />
+                            ) : locationStatus === "success" ? (
+                              <MapPin className="h-5 w-5 fill-current" />
+                            ) : (
+                              <MapPin className="h-5 w-5" />
+                            )}
+                            <span className="ml-2 sm:hidden">
+                              {locationStatus === "loading" ? "Đang lấy vị trí..." : locationStatus === "success" ? "Đã lấy vị trí" : "Sử dụng GPS hiện tại"}
+                            </span>
+                            <span className="ml-2 hidden sm:inline">
+                              {locationStatus === "loading" ? "Đang lấy..." : locationStatus === "success" ? "Đã ghim" : "Dùng GPS"}
+                            </span>
+                          </Button>
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <div className="md:col-span-2">
+                  <FormField
+                    control={form.control}
+                    name="description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="font-semibold">Mô tả chi tiết</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Số lượng người, tình trạng hiện tại, vật dụng cụ thể..."
+                            className="min-h-[120px] rounded-xl bg-muted/30 resize-none text-base"
+                            {...field}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={getLocation}
-                    disabled={locationStatus === "loading" || locationStatus === "success"}
-                    className={`w-full h-12 rounded-xl border-dashed border-2 text-base ${locationStatus === "success"
-                      ? "border-green-500 text-green-600 bg-green-50 hover:bg-green-50"
-                      : "border-muted-foreground/30 hover:bg-muted/50"
-                      }`}
-                  >
-                    {locationStatus === "loading" ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Đang định vị...
-                      </>
-                    ) : locationStatus === "success" ? (
-                      <>
-                        <MapPin className="mr-2 h-4 w-4 fill-current" /> Đã ghim vị trí của bạn
-                      </>
-                    ) : (
-                      <>
-                        <MapPin className="mr-2 h-4 w-4" /> Sử dụng GPS hiện tại
-                      </>
-                    )}
-                  </Button>
                 </div>
+
+
               </div>
 
               {locationStatus === "error" && (

@@ -10,7 +10,8 @@ export async function GET(request: Request) {
 
         let query = supabase
             .from("relief_requests")
-            .select("*")
+            .select("*, reports(count)")
+            .order("urgency_level", { ascending: false })
             .order("created_at", { ascending: false })
 
         if (status && status !== "-1") {
@@ -49,6 +50,7 @@ export async function POST(request: Request) {
                 latitude: body.latitude,
                 longitude: body.longitude,
                 address: body.address,
+                urgency_level: body.urgencyLevel ?? 1,
                 contact_phone: body.contactPhone,
                 status: RequestStatus.Open,
                 created_at: new Date().toISOString(),

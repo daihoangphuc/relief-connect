@@ -1,4 +1,4 @@
-import { type CreateRequestDto, type ReliefRequest, RequestStatus } from "@/types/api"
+import { type CreateRequestDto, type ReliefRequest, RequestStatus, UrgencyLevel } from "@/types/api"
 
 // Force relative path to avoid Mixed Content issues on Ngrok (HTTPS -> HTTP)
 const API_BASE_URL = "/api"
@@ -13,8 +13,10 @@ const mapRequestFromApi = (data: any): ReliefRequest => ({
   longitude: data.longitude,
   address: data.address,
   status: data.status,
+  urgencyLevel: data.urgency_level ?? UrgencyLevel.Medium,
   createdAt: data.created_at,
   contactPhone: data.contact_phone,
+  reportCount: data.reports?.[0]?.count || 0,
 })
 
 // Helper for consistent fetch handling
@@ -71,6 +73,7 @@ export const api = {
       latitude: data.latitude,
       longitude: data.longitude,
       address: data.address,
+      urgencyLevel: data.urgencyLevel ?? UrgencyLevel.Medium,
       contactPhone: data.contactPhone || null,
     }
 
@@ -91,9 +94,11 @@ export const api = {
     })
   },
 
-  completeMission: async (missionId: string) => {
+  completeMission: async (missionId: string, proofImage?: string) => {
     await fetchClient(`${API_BASE_URL}/missions?id=${missionId}`, {
       method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ proofImage }),
     })
     return { success: true }
   },

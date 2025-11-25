@@ -5,7 +5,7 @@ import { ChevronLeft } from "lucide-react"
 
 export default function VolunteerPage() {
   return (
-    <div className="container max-w-5xl mx-auto py-8 px-4 space-y-6">
+    <div className="container max-w-5xl mx-auto py-8 px-4 space-y-6" suppressHydrationWarning>
       <div className="flex items-center gap-4">
         <Link href="/">
           <Button variant="ghost" size="icon">

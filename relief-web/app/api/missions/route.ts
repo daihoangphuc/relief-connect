@@ -52,6 +52,15 @@ export async function PATCH(request: Request) {
         const { searchParams } = new URL(request.url)
         const missionId = searchParams.get("id")
 
+        // Read body for proofImage
+        let proofImage = null
+        try {
+            const body = await request.json()
+            proofImage = body.proofImage
+        } catch (e) {
+            // Ignore if no body
+        }
+
         if (!missionId) {
             return NextResponse.json({ error: "Missing missionId" }, { status: 400 })
         }
@@ -68,9 +77,14 @@ export async function PATCH(request: Request) {
         }
 
         // 2. Update Mission to Completed
+        const updateData: any = { completed_at: new Date().toISOString() }
+        if (proofImage) {
+            updateData.proof_image = proofImage
+        }
+
         const { error: missionError } = await supabase
             .from("relief_missions")
-            .update({ completed_at: new Date().toISOString() })
+            .update(updateData)
             .eq("id", missionId)
 
         if (missionError) {

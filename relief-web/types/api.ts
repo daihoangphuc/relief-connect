@@ -5,6 +5,13 @@ export enum RequestStatus {
   Cancelled = 3,
 }
 
+export enum UrgencyLevel {
+  Low = 0,
+  Medium = 1,
+  High = 2,
+  Critical = 3,
+}
+
 // Matches 'relief_requests' table
 export interface ReliefRequest {
   id: string
@@ -15,9 +22,11 @@ export interface ReliefRequest {
   longitude: number
   address: string
   status: RequestStatus
+  urgencyLevel: UrgencyLevel // mapped from urgency_level
   createdAt: string // mapped from created_at
   contactPhone?: string | null // mapped from contact_phone
   items?: RequestItem[]
+  reportCount?: number
 }
 
 // Matches 'request_items' table
@@ -46,6 +55,7 @@ export interface CreateRequestDto {
   latitude: number
   longitude: number
   address: string
+  urgencyLevel?: UrgencyLevel
   contactPhone?: string
   items?: { itemName: string; quantityNeeded: number; unit: string }[]
 }

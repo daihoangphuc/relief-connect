@@ -99,7 +99,7 @@ export default function RequestPage() {
 
       const description = values.contact ? `${values.description}\n\nLiên hệ: ${values.contact}` : values.description
 
-      await api.createRequest({
+      const newRequest = await api.createRequest({
         requesterId,
         title: values.title,
         description,
@@ -110,7 +110,7 @@ export default function RequestPage() {
       })
 
       toast.success("Yêu cầu cứu trợ đã được gửi thành công!")
-      router.push("/request/success")
+      router.push(`/request/success?id=${newRequest.id}`)
     } catch (error: any) {
       console.error(error)
       toast.error(error.message || "Có lỗi xảy ra, vui lòng thử lại.", { duration: 10000 })

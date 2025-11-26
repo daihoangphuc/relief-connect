@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Không có kết nối mạng - Relief Connect</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+            background-color: #f8fafc;
+            color: #0f172a;
+        }
+
+        .icon {
+            width: 64px;
+            height: 64px;
+            margin-bottom: 20px;
+            color: #ef4444;
+        }
+
+        h1 {
+            margin: 0 0 10px;
+            font-size: 24px;
+        }
+
+        p {
+            margin: 0 0 20px;
+            color: #64748b;
+        }
+
+        button {
+            background-color: #ef4444;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #dc2626;
+        }
+    </style>
+</head>
+
+<body>
+    <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M10.75 8.75C10.75 8.75 13.25 8.75 13.25 8.75" />
+        <path d="M12 12.25C12 12.25 12 15.25 12 15.25" />
+        <path d="M16.75 12.25C16.75 12.25 16.75 15.25 16.75 15.25" />
+        <path d="M7.25 12.25C7.25 12.25 7.25 15.25 7.25 15.25" />
+        <path d="M22 12L2 12" />
+        <path
+            d="M5.45 5.11L2 12V22H22V12L18.55 5.11C18.38 4.77 18.03 4.55 17.65 4.55H6.35C5.97 4.55 5.62 4.77 5.45 5.11Z" />
+    </svg>
+    <h1>Bạn đang ngoại tuyến</h1>
+    <p>Vui lòng kiểm tra kết nối internet của bạn để tiếp tục sử dụng đầy đủ tính năng.</p>
+    <button onclick="window.location.reload()">Thử lại</button>
+
+    <script>
+        window.addEventListener('online', () => {
+            window.location.reload();
+        });
+    </script>
+</body>
+
+</html>

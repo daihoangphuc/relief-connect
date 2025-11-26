@@ -4,9 +4,12 @@ import { Radio, HandHelping, ShieldCheck, Zap, Heart, Activity, ArrowRight } fro
 import { HomeStats } from "@/components/home-stats"
 import { cn } from "@/lib/utils"
 
+import { LocationPermissionModal } from "@/components/location-permission-modal"
+
 export default function Home() {
   return (
     <div className="flex flex-col min-h-[calc(100vh-4rem)]">
+      <LocationPermissionModal />
       {/* Hero Section */}
       <section className="flex-1 flex flex-col items-center justify-center py-20 md:py-32 relative overflow-hidden">
         {/* Decorative background elements - Aurora Effect */}

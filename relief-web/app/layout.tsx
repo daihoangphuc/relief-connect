@@ -10,10 +10,26 @@ const beVietnamPro = Be_Vietnam_Pro({
   variable: "--font-sans",
 })
 
-export const metadata = {
+import type { Metadata, Viewport } from "next"
+
+export const metadata: Metadata = {
   title: "RELIEF CONNECT - Cứu Trợ Khẩn Cấp",
   description: "Hệ thống kết nối cứu trợ khẩn cấp thời gian thực",
-  generator: 'v0.app'
+  generator: 'v0.app',
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Relief Connect",
+  },
+}
+
+export const viewport: Viewport = {
+  themeColor: "#ef4444",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 }
 
 import { ServiceWorkerRegister } from "@/components/sw-register"

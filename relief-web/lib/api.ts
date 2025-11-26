@@ -91,6 +91,11 @@ export const api = {
     }
   },
 
+  getRequestById: async (id: string): Promise<ReliefRequest> => {
+    const response = await fetchClient(`${API_BASE_URL}/requests/${id}`)
+    return mapRequestFromApi(response)
+  },
+
   createRequest: async (data: CreateRequestDto): Promise<ReliefRequest> => {
     console.log("[v0] Creating request at:", `${API_BASE_URL}/requests`)
 

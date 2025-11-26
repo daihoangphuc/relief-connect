@@ -20,6 +20,7 @@ import { api } from "@/lib/api"
 import { UrgencyLevel } from "@/types/api"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { VoiceRequestButton } from "@/components/voice-request-button"
+import { useLocation } from "@/context/location-context"
 
 
 const formSchema = z.object({
@@ -60,64 +61,31 @@ export default function RequestPage() {
     },
   })
 
-  const getLocation = () => {
-    setLocationStatus("loading")
-    if (!navigator.geolocation) {
-      setLocationStatus("error")
-      toast.error("Trình duyệt không hỗ trợ định vị")
-      return
+  const { latitude, longitude, address, status: globalLocationStatus, refreshLocation } = useLocation()
+
+  // Sync global location to form when available
+  useEffect(() => {
+    if (globalLocationStatus === "success" && latitude && longitude) {
+      form.setValue("latitude", latitude)
+      form.setValue("longitude", longitude)
+      if (address) {
+        // Only set address if it's not already set by user (or if it's the default empty string)
+        const currentAddress = form.getValues("address")
+        if (!currentAddress) {
+          form.setValue("address", address)
+        }
+      }
+      setLocationStatus("success")
     }
+  }, [globalLocationStatus, latitude, longitude, address, form])
 
+  const getLocation = async () => {
+    setLocationStatus("loading")
     try {
-      navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          const lat = position.coords.latitude
-          const lng = position.coords.longitude
-
-          form.setValue("latitude", lat)
-          form.setValue("longitude", lng)
-
-          // Reverse geocoding to get address from coordinates
-          try {
-            const response = await fetch(
-              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=vi`,
-              {
-                headers: {
-                  'User-Agent': 'ReliefConnect/1.0'
-                }
-              }
-            )
-
-            if (response.ok) {
-              const data = await response.json()
-              const address = data.display_name || `${lat.toFixed(6)}, ${lng.toFixed(6)}`
-              form.setValue("address", address)
-              toast.success("Đã lấy được vị trí: " + (data.address?.city || data.address?.county || ""))
-            } else {
-              // Fallback to coordinates if reverse geocoding fails
-              form.setValue("address", `${lat.toFixed(6)}, ${lng.toFixed(6)}`)
-              toast.success("Đã lấy được tọa độ vị trí")
-            }
-          } catch (geocodeError) {
-            console.error("Reverse geocoding error:", geocodeError)
-            // Fallback to coordinates
-            form.setValue("address", `${lat.toFixed(6)}, ${lng.toFixed(6)}`)
-            toast.success("Đã lấy được tọa độ vị trí")
-          }
-
-          setLocationStatus("success")
-        },
-        (error) => {
-          console.error(error)
-          setLocationStatus("error")
-          toast.error("Không thể lấy vị trí. Vui lòng kiểm tra quyền truy cập.")
-        },
-        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-      )
+      await refreshLocation()
+      // The useEffect above will handle updating the form
     } catch (error) {
-      console.error("Geolocation error:", error)
       setLocationStatus("error")
-      toast.error("Lỗi khi gọi định vị. Có thể do tiện ích mở rộng chặn.")
     }
   }
 

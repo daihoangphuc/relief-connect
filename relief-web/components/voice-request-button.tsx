@@ -10,7 +10,10 @@ interface VoiceRequestButtonProps {
     onLocationFound: (lat: number, lng: number) => void
 }
 
+import { useLocation } from "@/context/location-context"
+
 export function VoiceRequestButton({ onDataReceived, onLocationFound }: VoiceRequestButtonProps) {
+    const { updateLocation } = useLocation()
     const [isRecording, setIsRecording] = useState(false)
     const [isAnalyzing, setIsAnalyzing] = useState(false)
     const mediaRecorderRef = useRef<MediaRecorder | null>(null)
@@ -40,12 +43,14 @@ export function VoiceRequestButton({ onDataReceived, onLocationFound }: VoiceReq
                 // Try high accuracy first
                 const position = await getLocation(true)
                 onLocationFound(position.coords.latitude, position.coords.longitude)
+                updateLocation(position.coords.latitude, position.coords.longitude)
             } catch (error: any) {
                 console.warn("High accuracy location failed, retrying with low accuracy...", error)
                 try {
                     // Fallback to low accuracy
                     const position = await getLocation(false)
                     onLocationFound(position.coords.latitude, position.coords.longitude)
+                    updateLocation(position.coords.latitude, position.coords.longitude)
                 } catch (fallbackError: any) {
                     console.error("Location error (Final):", fallbackError)
                     let errorMsg = "Không thể lấy vị trí."

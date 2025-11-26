@@ -47,15 +47,17 @@ export function LocationIndicator() {
                             const data = await response.json()
                             const addressParts = []
 
-                            // Prioritize specific address components for a concise display
                             if (data.address) {
-                                if (data.address.quarter) addressParts.push(data.address.quarter)
-                                else if (data.address.village) addressParts.push(data.address.village)
-                                else if (data.address.suburb) addressParts.push(data.address.suburb)
+                                const addr = data.address;
+                                // Only show City/State as requested
+                                const cityOrState = addr.city || addr.state || addr.province || "";
 
-                                if (data.address.city_district) addressParts.push(data.address.city_district)
-                                else if (data.address.district) addressParts.push(data.address.district)
-                                else if (data.address.city) addressParts.push(data.address.city)
+                                if (cityOrState) {
+                                    addressParts.push(cityOrState);
+                                } else {
+                                    // Fallback if city/state is not found
+                                    addressParts.push(addr.district || addr.town || "Không xác định");
+                                }
                             }
 
                             const formattedAddress = addressParts.length > 0

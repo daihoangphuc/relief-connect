@@ -21,14 +21,7 @@ export function Navbar() {
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-1">
-            <Link
-              href="/missions"
-              className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-full transition-colors"
-            >
-              Nhiệm vụ
-            </Link>
-          </div>
+          {/* Missions link removed */}
         </div>
 
         <div className="flex items-center gap-2 sm:gap-4">

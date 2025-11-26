@@ -27,6 +27,12 @@ export interface ReliefRequest {
   contactPhone?: string | null // mapped from contact_phone
   items?: RequestItem[]
   reportCount?: number
+  proofImage?: string | null
+  reporterIds?: string[]
+  mission?: {
+    id: string
+    donorId: string
+  } | null
 }
 
 // Matches 'request_items' table

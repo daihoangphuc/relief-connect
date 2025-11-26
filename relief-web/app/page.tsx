@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Radio, HandHelping, ShieldCheck, Zap, Heart, Activity, ArrowRight } from "lucide-react"
+import { HomeStats } from "@/components/home-stats"
 
 export default function Home() {
   return (
@@ -72,6 +73,11 @@ export default function Home() {
           </Link>
         </div>
       </section>
+
+      {/* Stats Section */}
+      <div className="container max-w-6xl mx-auto px-4">
+        <HomeStats />
+      </div>
 
       {/* Features / Trust Section */}
       <section className="py-24 bg-secondary/30 border-t border-border">

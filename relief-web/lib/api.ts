@@ -16,7 +16,13 @@ const mapRequestFromApi = (data: any): ReliefRequest => ({
   urgencyLevel: data.urgency_level ?? UrgencyLevel.Medium,
   createdAt: data.created_at,
   contactPhone: data.contact_phone,
-  reportCount: data.reports?.[0]?.count || 0,
+  reportCount: data.reports?.length || 0,
+  reporterIds: data.reports?.map((r: any) => r.reporter_id) || [],
+  proofImage: data.relief_missions?.find((m: any) => m.proof_image)?.proof_image || null,
+  mission: data.mission ? {
+    id: data.mission.id,
+    donorId: data.mission.donorId
+  } : undefined,
 })
 
 // Helper for consistent fetch handling
@@ -52,15 +58,37 @@ const fetchClient = async (url: string, options?: RequestInit) => {
 }
 
 export const api = {
-  getRequests: async (status?: RequestStatus): Promise<ReliefRequest[]> => {
-    let urlStr = `${API_BASE_URL}/requests`
+  getRequests: async (
+    status?: RequestStatus,
+    page = 1,
+    limit = 5,
+    lat?: number,
+    lng?: number
+  ): Promise<{ data: ReliefRequest[], total: number, totalPages: number }> => {
+    let urlStr = `${API_BASE_URL}/requests?page=${page}&limit=${limit}`
+
     if (status !== undefined && (status as any) !== -1) {
-      urlStr += `?status=${status}`
+      urlStr += `&status=${status}`
     }
+
+    if (lat && lng) {
+      urlStr += `&lat=${lat}&lng=${lng}&radius=10`
+    }
+
     console.log("[v0] Fetching requests from:", urlStr)
 
-    const data = await fetchClient(urlStr)
-    return Array.isArray(data) ? data.map(mapRequestFromApi) : []
+    const response = await fetchClient(urlStr)
+
+    // Handle both old array format (fallback) and new object format
+    if (Array.isArray(response)) {
+      return { data: response.map(mapRequestFromApi), total: response.length, totalPages: 1 }
+    }
+
+    return {
+      data: Array.isArray(response.data) ? response.data.map(mapRequestFromApi) : [],
+      total: response.pagination?.total || 0,
+      totalPages: response.pagination?.totalPages || 1
+    }
   },
 
   createRequest: async (data: CreateRequestDto): Promise<ReliefRequest> => {
@@ -102,4 +130,8 @@ export const api = {
     })
     return { success: true }
   },
+
+
+
+
 }

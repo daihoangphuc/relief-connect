@@ -123,3 +123,44 @@ export function useRealtimeMissions(donorId: string, onMissionUpdate?: () => voi
         }
     }, [donorId, onMissionUpdate])
 }
+
+export function useRealtimeGlobalUpdates(onUpdate: () => void) {
+    const channelRef = useRef<RealtimeChannel | null>(null)
+
+    useEffect(() => {
+        // Subscribe to changes in both requests and missions for global stats
+        channelRef.current = supabase
+            .channel("global_updates")
+            .on(
+                "postgres_changes",
+                {
+                    event: "*", // Listen to INSERT, UPDATE, DELETE
+                    schema: "public",
+                    table: "relief_requests",
+                },
+                (payload) => {
+                    console.log("Global request change:", payload)
+                    onUpdate()
+                }
+            )
+            .on(
+                "postgres_changes",
+                {
+                    event: "*",
+                    schema: "public",
+                    table: "relief_missions",
+                },
+                (payload) => {
+                    console.log("Global mission change:", payload)
+                    onUpdate()
+                }
+            )
+            .subscribe()
+
+        return () => {
+            if (channelRef.current) {
+                supabase.removeChannel(channelRef.current)
+            }
+        }
+    }, [onUpdate])
+}

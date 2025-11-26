@@ -17,6 +17,8 @@ export const metadata = {
 }
 
 import { ServiceWorkerRegister } from "@/components/sw-register"
+import { MobileNav } from "@/components/mobile-nav"
+import { LocationPermissionModal } from "@/components/location-permission-modal"
 
 // ... imports
 
@@ -29,9 +31,11 @@ export default function RootLayout({
     <html lang="vi" suppressHydrationWarning>
       <body className={`${beVietnamPro.variable} font-sans antialiased min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 overflow-x-hidden`} suppressHydrationWarning>
         <Navbar />
-        <main className="flex-1" suppressHydrationWarning>{children}</main>
+        <main className="flex-1 pb-16 md:pb-0" suppressHydrationWarning>{children}</main>
         <Toaster />
         <ServiceWorkerRegister />
+        <LocationPermissionModal />
+        <MobileNav />
       </body>
     </html>
   )

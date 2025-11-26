@@ -16,11 +16,11 @@ export function LocationIndicator() {
     const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle")
     const [address, setAddress] = useState<string>("")
 
-    const requestLocation = (highAccuracy: boolean) => {
+    const requestLocation = (highAccuracy: boolean, silent: boolean = false) => {
         setStatus("loading")
         if (!navigator.geolocation) {
             setStatus("error")
-            toast.error("Trình duyệt không hỗ trợ định vị")
+            if (!silent) toast.error("Trình duyệt không hỗ trợ định vị")
             return
         }
 
@@ -65,25 +65,25 @@ export function LocationIndicator() {
                                 : `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`
 
                             setAddress(formattedAddress)
-                            toast.success(`Đã cập nhật: ${formattedAddress}`)
+                            if (!silent) toast.success(`Đã cập nhật: ${formattedAddress}`)
                         } else {
                             setAddress(`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`)
-                            toast.success("Đã cập nhật vị trí (Không lấy được tên đường)")
+                            if (!silent) toast.success("Đã cập nhật vị trí (Không lấy được tên đường)")
                         }
                     } catch (error) {
                         console.error("Reverse geocoding error:", error)
                         setAddress(`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`)
-                        toast.success("Đã cập nhật vị trí")
+                        if (!silent) toast.success("Đã cập nhật vị trí")
                     }
                 },
                 (error) => {
                     console.warn("Geolocation error:", error)
                     if (highAccuracy) {
                         console.log("Retrying with low accuracy...")
-                        requestLocation(false)
+                        requestLocation(false, silent)
                     } else {
                         setStatus("error")
-                        toast.error("Không thể lấy vị trí. Vui lòng kiểm tra quyền truy cập.")
+                        if (!silent) toast.error("Không thể lấy vị trí. Vui lòng kiểm tra quyền truy cập.")
                     }
                 },
                 { enableHighAccuracy: highAccuracy, timeout: 5000, maximumAge: 0 }
@@ -94,15 +94,15 @@ export function LocationIndicator() {
         }
     }
 
-    const getLocation = () => requestLocation(true)
+    const getLocation = () => requestLocation(true, false)
 
-    // Auto-get location on mount if permission is already granted
+    // Auto-get location on mount ONLY if permission is already granted
     useEffect(() => {
         if (navigator.permissions && navigator.permissions.query) {
             navigator.permissions.query({ name: "geolocation" })
                 .then((result) => {
                     if (result.state === "granted") {
-                        getLocation()
+                        requestLocation(true, true) // Silent mode
                     }
                 })
                 .catch((error) => {

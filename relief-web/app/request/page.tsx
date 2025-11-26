@@ -19,6 +19,7 @@ import { toast } from "sonner"
 import { api } from "@/lib/api"
 import { UrgencyLevel } from "@/types/api"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { VoiceRequestButton } from "@/components/voice-request-button"
 
 
 const formSchema = z.object({
@@ -26,7 +27,7 @@ const formSchema = z.object({
   description: z.string().min(10, "Mô tả chi tiết tình huống cần hỗ trợ"),
   address: z.string().min(5, "Vui lòng nhập địa chỉ cụ thể"),
   urgency: z.string().optional(),
-  contact: z.string().min(10, "Vui lòng để lại số điện thoại liên hệ").optional(), // Optional but good practice
+  contact: z.string().min(10, "Vui lòng để lại số điện thoại liên hệ"),
   latitude: z.number().optional(),
   longitude: z.number().optional(),
 })
@@ -150,6 +151,20 @@ export default function RequestPage() {
     }
   }
 
+  const handleVoiceData = (data: any) => {
+    if (data.title) form.setValue("title", data.title)
+    if (data.description) form.setValue("description", data.description)
+    if (data.address) form.setValue("address", data.address)
+    if (data.contact) form.setValue("contact", data.contact)
+    if (data.urgency) form.setValue("urgency", String(data.urgency))
+
+    // Auto submit after a short delay to allow state updates
+    setTimeout(() => {
+      toast.info("Đang tự động gửi yêu cầu...")
+      form.handleSubmit(onSubmit)()
+    }, 500)
+  }
+
   return (
     <div className="container max-w-5xl mx-auto py-6 px-4 sm:py-8" suppressHydrationWarning>
       <Link
@@ -168,6 +183,16 @@ export default function RequestPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="p-5 sm:p-6 pt-0">
+
+          <VoiceRequestButton
+            onDataReceived={handleVoiceData}
+            onLocationFound={(lat, lng) => {
+              form.setValue("latitude", lat)
+              form.setValue("longitude", lng)
+              setLocationStatus("success")
+            }}
+          />
+
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 sm:space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

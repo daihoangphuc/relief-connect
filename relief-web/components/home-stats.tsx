@@ -56,7 +56,7 @@ export function HomeStats() {
     useRealtimeGlobalUpdates(fetchStats)
 
     if (loading) {
-        return <div className="py-12 text-center animate-pulse">Đang đồng bộ dữ liệu...</div>
+        return <div className="py-12 text-center animate-pulse" suppressHydrationWarning>Đang đồng bộ dữ liệu...</div>
     }
 
     return (

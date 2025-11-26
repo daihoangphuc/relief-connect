@@ -300,21 +300,33 @@ export function RequestList() {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className="text-center py-12 border rounded-2xl bg-muted/20"
+            className="text-center py-16 px-4 border-2 border-dashed border-muted-foreground/20 rounded-3xl bg-muted/5 flex flex-col items-center justify-center"
           >
-            <div className="bg-background p-4 rounded-full inline-flex mb-4 shadow-sm">
-              <CheckCircle2 className="h-8 w-8 text-muted-foreground/50" />
+            <div className="bg-background p-6 rounded-full shadow-lg mb-6 ring-4 ring-muted/20">
+              {statusFilter === "completed" ? (
+                <CheckCircle2 className="h-12 w-12 text-green-500" />
+              ) : (
+                <div className="relative">
+                  <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full" />
+                  <RefreshCw className="h-12 w-12 text-primary relative z-10" />
+                </div>
+              )}
             </div>
-            <h3 className="text-lg font-semibold">Không tìm thấy yêu cầu nào</h3>
-            <p className="text-muted-foreground max-w-sm mx-auto mt-2">
+            <h3 className="text-xl font-bold mb-2">
+              {statusFilter === "completed" ? "Chưa có nhiệm vụ hoàn thành" : "Không tìm thấy yêu cầu nào"}
+            </h3>
+            <p className="text-muted-foreground max-w-sm mx-auto mb-8 leading-relaxed">
               {userLocation
-                ? "Không có yêu cầu nào trong bán kính 10km quanh bạn."
+                ? "Không có yêu cầu nào trong bán kính 10km quanh bạn. Hãy thử mở rộng phạm vi tìm kiếm."
                 : statusFilter === "open"
-                  ? "Tuyệt vời! Hiện không có yêu cầu hỗ trợ nào."
-                  : "Không có dữ liệu trong danh mục này."}
+                  ? "Tuyệt vời! Hiện tại không có yêu cầu cứu trợ khẩn cấp nào."
+                  : "Danh sách này đang trống."}
             </p>
-            <Button variant="outline" onClick={() => loadRequests(statusFilter, currentPage, userLocation)} className="mt-6 rounded-xl">
-              <RefreshCw className="h-4 w-4 mr-2" /> Thử lại
+            <Button
+              onClick={() => loadRequests(statusFilter, currentPage, userLocation)}
+              className="rounded-xl h-12 px-8 shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all hover:-translate-y-1"
+            >
+              <RefreshCw className="h-4 w-4 mr-2" /> Làm mới dữ liệu
             </Button>
           </motion.div>
         ) : (
